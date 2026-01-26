@@ -1,0 +1,9 @@
+{
+  "name": "FaturandoAltoPro 6.0",
+  "description": "Sistema operacional completo para motoristas de aplicativo. Gestão de jornada, metas inteligentes e telemetria financeira em tempo real.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera",
+    "microphone"
+  ]
+}
