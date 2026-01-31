@@ -12,40 +12,40 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, showNav, currentPage, setCurrentPage }) => {
   return (
-    <div className="flex flex-col flex-1 h-screen dynamic-bg">
-      <main className="flex-1 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col flex-1 h-screen dynamic-bg overflow-hidden">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
         {children}
       </main>
       
       {showNav && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[var(--nav-bg)] backdrop-blur-3xl border-t border-[var(--border-glass)] pb-10 pt-4 px-6 flex justify-between items-center safe-area-bottom z-50">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[var(--nav-bg)] backdrop-blur-2xl border-t border-[var(--border-glass)] pb-6 pt-3 px-4 flex justify-between items-center safe-area-bottom z-50">
           <NavItem 
             active={currentPage === AppState.DASHBOARD} 
-            icon={<LayoutDashboard size={22} />} 
-            label="PAINEL" 
+            icon={<LayoutDashboard size={20} />} 
+            label="HUD" 
             onClick={() => setCurrentPage(AppState.DASHBOARD)}
           />
           <NavItem 
             active={currentPage === AppState.FINANCE_INSIGHTS} 
-            icon={<BarChart3 size={22} />} 
+            icon={<BarChart3 size={20} />} 
             label="STATS" 
             onClick={() => setCurrentPage(AppState.FINANCE_INSIGHTS)}
           />
           <NavItem 
             active={currentPage === AppState.HISTORY} 
-            icon={<History size={22} />} 
+            icon={<History size={20} />} 
             label="LOGS" 
             onClick={() => setCurrentPage(AppState.HISTORY)}
           />
           <NavItem 
             active={currentPage === AppState.MAINTENANCE} 
-            icon={<Wrench size={22} />} 
-            label="MECÂNICA" 
+            icon={<Wrench size={20} />} 
+            label="BIKE" 
             onClick={() => setCurrentPage(AppState.MAINTENANCE)}
           />
           <NavItem 
             active={currentPage === AppState.SETTINGS} 
-            icon={<Settings size={22} />} 
+            icon={<Settings size={20} />} 
             label="CORE" 
             onClick={() => setCurrentPage(AppState.SETTINGS)}
           />
@@ -58,11 +58,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, showNav, currentPage, 
 const NavItem = ({ active, icon, label, onClick }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void }) => (
   <button 
     onClick={onClick}
-    className={`flex flex-col items-center gap-1.5 transition-all ${active ? 'text-cyan-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+    className={`flex flex-col items-center gap-1 transition-all ${active ? 'text-cyan-500' : 'text-zinc-600 hover:text-zinc-400'}`}
   >
-    <div className={`${active ? 'drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]' : ''}`}>
+    <div className={`${active ? 'drop-shadow-[0_0_5px_rgba(6,182,212,0.4)]' : ''}`}>
       {icon}
     </div>
-    <span className="text-[7px] font-black uppercase tracking-widest">{label}</span>
+    <span className="text-[6px] font-black uppercase tracking-widest">{label}</span>
   </button>
 );

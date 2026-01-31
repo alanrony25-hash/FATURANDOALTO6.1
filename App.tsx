@@ -25,7 +25,7 @@ const DEFAULT_BUCKETS: BudgetBucket[] = [
 ];
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
-  cockpitTitle: 'CYBER-COMMAND 13.5',
+  cockpitTitle: 'faturandoaltor15.0',
   monthlyGoalLabel: 'META MÊS',
   todayNetLabel: 'LUCRO HOJE',
   todayExpensesLabel: 'DEDUÇÕES',
@@ -167,6 +167,23 @@ const App: React.FC = () => {
     }
   };
 
+  const resetSingleBucket = (id: string) => {
+    const newBuckets = buckets.map(b => b.id === id ? {...b, currentAmount: 0} : b);
+    setBuckets(newBuckets);
+    localStorage.setItem('budget_buckets', JSON.stringify(newBuckets));
+  };
+
+  const resetAllBuckets = () => {
+    const newBuckets = buckets.map(b => ({...b, currentAmount: 0}));
+    setBuckets(newBuckets);
+    localStorage.setItem('budget_buckets', JSON.stringify(newBuckets));
+  };
+
+  const updateBuckets = (newBuckets: BudgetBucket[]) => {
+    setBuckets(newBuckets);
+    localStorage.setItem('budget_buckets', JSON.stringify(newBuckets));
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen dynamic-bg relative overflow-hidden flex flex-col shadow-2xl">
       <Layout showNav={![AppState.SPLASH, AppState.LOGIN, AppState.REGISTER, AppState.ACTIVE_JOURNEY].includes(currentPage) || isPopUpMode} currentPage={currentPage} setCurrentPage={setCurrentPage}>
@@ -174,11 +191,12 @@ const App: React.FC = () => {
         {currentPage === AppState.LOGIN && <Login onLogin={(u, r) => { setCurrentUser(u); localStorage.setItem('remember_me', r.toString()); if(r) localStorage.setItem('logged_user', JSON.stringify(u)); setCurrentPage(AppState.DASHBOARD); }} onGoToRegister={() => setCurrentPage(AppState.REGISTER)} />}
         {currentPage === AppState.REGISTER && <Register onRegister={(u) => { setCurrentUser(u); setCurrentPage(AppState.DASHBOARD); }} onBack={() => setCurrentPage(AppState.LOGIN)} />}
         {currentPage === AppState.DASHBOARD && <Dashboard 
-          history={history} monthlyGoal={monthlyGoal} onUpdateGoal={setMonthlyGoal} buckets={buckets} onUpdateBuckets={setBuckets}
-          onResetBuckets={() => setBuckets(p => p.map(b => ({...b, currentAmount: 0})))} onResetSingleBucket={(id) => setBuckets(p => p.map(b => b.id === id ? {...b, currentAmount: 0} : b))}
+          history={history} monthlyGoal={monthlyGoal} onUpdateGoal={setMonthlyGoal} buckets={buckets} onUpdateBuckets={updateBuckets}
+          onResetBuckets={resetAllBuckets} onResetSingleBucket={resetSingleBucket}
           onStartJourney={startJourney} activeJourney={activeJourney} onViewHistory={() => setCurrentPage(AppState.HISTORY)} currentKm={currentKm}
           onStartVoice={() => setShowVoice(true)} onOpenRadar={() => setShowRadar(true)}
           dashboardConfig={dashboardConfig} onUpdateDashboardConfig={updateDashboardConfig}
+          onGoToSettings={() => setCurrentPage(AppState.SETTINGS)}
         />}
         {currentPage === AppState.ACTIVE_JOURNEY && activeJourney && (
           <ActiveJourney 
@@ -190,21 +208,20 @@ const App: React.FC = () => {
         )}
         {currentPage === AppState.HISTORY && <History history={history} onDeleteJourney={(id) => setHistory(h => h.filter(j => j.id !== id))} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.MAINTENANCE && <Maintenance currentKm={currentKm} items={maintenanceItems} onUpdateItems={setMaintenanceItems} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
-        {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={setBuckets} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={updateDashboardConfig} />}
+        {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={updateBuckets} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={updateDashboardConfig} />}
         {currentPage === AppState.DAY_DETAIL && history[0] && <DayDetail journey={history[0]} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.FINANCE_INSIGHTS && <FinancialInsights history={history} monthlyGoal={monthlyGoal} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
       </Layout>
       {showVoice && <VoiceCopilot onClose={() => setShowVoice(false)} history={history} />}
       {showRadar && <RadarPro onClose={() => setShowRadar(false)} />}
       
-      {/* POPUP MODE WINDOW */}
       {activeJourney && isPopUpMode && (
         <PopUpWindow 
           journey={activeJourney} 
           onExpand={() => setIsPopUpMode(false)}
           isPaused={!!activeJourney.isPaused}
           onTogglePause={togglePauseFromPopUp}
-          onQuickExpense={() => { setIsPopUpMode(false); }} // Ao clicar em gasto, volta para tela cheia para lançar
+          onQuickExpense={() => { setIsPopUpMode(false); }} 
         />
       )}
 

@@ -5,7 +5,6 @@ import { Shield } from 'lucide-react';
 const Splash: React.FC = () => {
   return (
     <div className="h-full flex flex-col items-center justify-center bg-black p-8 relative overflow-hidden">
-      {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 blur-[100px] animate-pulse"></div>
       
       <div className="relative group">
@@ -17,9 +16,9 @@ const Splash: React.FC = () => {
       
       <div className="mt-8 text-center relative z-10">
         <h1 className="text-3xl font-black text-white tracking-tighter italic">
-          FATURANDO<span className="text-cyan-500">ALTO</span>PRO
+          FATURANDOALTO<span className="text-cyan-500">R</span>
         </h1>
-        <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Versão 12.0 • Sistema Operacional</p>
+        <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic">Protocolo 15.0 • Ativo</p>
       </div>
       
       <div className="absolute bottom-24 w-48 h-[2px] bg-zinc-900 rounded-full overflow-hidden">
