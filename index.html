@@ -7,73 +7,86 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2092/2092663.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/11554/11554754.png">
     <link rel="manifest" href="manifest.json">
-    <title>faturandoaltor15.0</title>
+    <title>faturandoaltor16.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            /* DARK MODE (PREMIUM OLED) */
             --bg-primary: #000000;
-            --bg-grid: rgba(6, 182, 212, 0.05);
-            --text-primary: #fafafa;
-            --text-secondary: #52525b;
-            --glass-bg: rgba(5, 5, 5, 0.8);
-            --border-glass: rgba(255, 255, 255, 0.05);
-            --cyan-glow: #06b6d4;
-            --emerald-glow: #10b981;
-            --red-glow: #ef4444;
-            --nav-bg: rgba(5, 5, 5, 0.95);
+            --bg-secondary: #0a0a0b;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-ui: rgba(255, 255, 255, 0.1);
+            --cyan-accent: #22d3ee;
+            --emerald-accent: #10b981;
+            --red-accent: #f43f5e;
+            --card-bg: #09090b;
+            --nav-bg: #000000;
         }
 
         .light-mode {
-            --bg-primary: #f8fafc;
-            --bg-grid: rgba(15, 23, 42, 0.04);
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --border-glass: rgba(15, 23, 42, 0.08);
-            --nav-bg: rgba(255, 255, 255, 0.95);
+            /* LIGHT MODE (ULTRA CONTRAST) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #000000;
+            --text-secondary: #000000;
+            --border-ui: #000000;
+            --cyan-accent: #0891b2;
+            --emerald-accent: #059669;
+            --red-accent: #be123c;
+            --card-bg: #ffffff;
+            --nav-bg: #ffffff;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-primary);
-            background-image: radial-gradient(circle at 50% 50%, var(--bg-grid) 1px, transparent 1px);
-            background-size: 24px 24px;
             color: var(--text-primary);
             overflow: hidden;
             position: fixed;
             width: 100%;
             height: 100%;
+            transition: all 0.2s ease;
         }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
+        .ui-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-ui);
+            border-radius: 20px;
+            transition: transform 0.1s ease;
         }
 
-        .neon-text-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-        .neon-border-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2); }
-        
-        ::-webkit-scrollbar { display: none; }
+        .light-mode .ui-card {
+            border: 2px solid #000000;
+            box-shadow: 4px 4px 0px #000000;
+        }
 
-        .btn-active:active { transform: scale(0.95); filter: brightness(1.2); }
+        .light-mode button {
+            border: 2px solid #000000 !important;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        .btn-active:active { transform: scale(0.95); }
+        
+        .nav-active {
+            color: var(--cyan-accent) !important;
+            opacity: 1 !important;
+        }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "recharts": "https://esm.sh/recharts@^3.7.0"
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "@google/genai": "https://esm.sh/@google/genai@^1.39.0"
   }
 }
 </script>

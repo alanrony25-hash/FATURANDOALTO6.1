@@ -1,8 +1,8 @@
 
 {
-  "name": "FaturandoAlto Pro 12.0",
-  "short_name": "FaturarAlto",
-  "description": "Sistema Operacional para Motoristas Profissionais",
+  "name": "FaturandoAlto Pro 16.1",
+  "short_name": "FA Pro",
+  "description": "Cockpit de Alta Performance para Motoristas Profissionais",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -11,13 +11,13 @@
   "categories": ["productivity", "finance"],
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/11554/11554754.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/11554/11554754.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -25,16 +25,16 @@
   ],
   "shortcuts": [
     {
-      "name": "Iniciar Jornada",
-      "short_name": "Rodar",
+      "name": "Ativar Protocolo",
+      "short_name": "Iniciar",
       "url": "/?action=start",
-      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/11554/11554754.png", "sizes": "192x192" }]
     },
     {
-      "name": "Ver Histórico",
-      "short_name": "Logs",
+      "name": "Ver Telemetria",
+      "short_name": "Stats",
       "url": "/?action=history",
-      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/11554/11554754.png", "sizes": "192x192" }]
     }
   ]
 }

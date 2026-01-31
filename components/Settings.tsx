@@ -29,96 +29,93 @@ const Settings: React.FC<SettingsProps> = ({
   onUpdateDashboardConfig
 }) => {
   return (
-    <div className="p-3 h-full flex flex-col pb-32 dynamic-bg overflow-y-auto no-scrollbar">
-      <header className="flex items-center justify-between mb-3 shrink-0">
-        <button onClick={onBack} className="w-9 h-9 rounded-lg glass flex items-center justify-center text-zinc-500">
-          <ArrowLeft size={18} />
+    <div className="p-4 h-full flex flex-col pb-32 overflow-y-auto no-scrollbar">
+      <header className="flex items-center justify-between mb-6 shrink-0 pt-2">
+        <button onClick={onBack} className="w-10 h-10 ui-card flex items-center justify-center text-[var(--text-secondary)]">
+          <ArrowLeft size={20} />
         </button>
         <div className="text-right">
-          <span className="text-[7px] font-black text-cyan-500 uppercase tracking-widest block">SISTEMA ATIVO</span>
-          <h1 className="dynamic-text font-black text-sm uppercase tracking-tighter italic leading-none">faturandoaltor15.0</h1>
+          <span className="text-[8px] font-black text-[var(--cyan-accent)] uppercase tracking-widest block">SISTEMA ATIVO</span>
+          <h1 className="font-black text-lg uppercase tracking-tighter italic leading-none">CENTRAL <span className="text-[var(--cyan-accent)]">CORE</span></h1>
         </div>
       </header>
 
-      <div className="space-y-3">
-        {/* FILA SUPERIOR: LUCRO E TEMA LADO A LADO */}
-        <div className="grid grid-cols-2 gap-2">
-          <section className="space-y-1.5">
-            <h3 className="text-[7px] font-black text-zinc-600 uppercase tracking-widest ml-1 flex items-center gap-1">
-              <Gauge size={10} className="text-cyan-500" /> LUCRO REAL
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <section className="space-y-2">
+            <h3 className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 flex items-center gap-2">
+              <Gauge size={12} className="text-[var(--cyan-accent)]" /> CUSTO OPERACIONAL
             </h3>
-            <div className="bg-black p-3 rounded-2xl border border-cyan-500/20 flex flex-col items-center">
-              <span className="text-zinc-600 text-[6px] font-black uppercase mb-1">CUSTO / KM</span>
-              <div className="flex items-center gap-1">
-                <span className="text-cyan-500 font-black mono text-xs italic">R$</span>
+            <div className="ui-card p-4 flex flex-col items-center gap-2">
+              <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase">VALOR POR KM</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--cyan-accent)] font-black mono text-sm italic">R$</span>
                 <input 
                   type="number" step="0.01"
                   value={dashboardConfig.costPerKm || 0.45}
                   onChange={(e) => onUpdateDashboardConfig({...dashboardConfig, costPerKm: Number(e.target.value)})}
-                  className="bg-zinc-900 text-cyan-400 text-sm font-black w-14 text-center py-1 rounded-lg outline-none border border-cyan-500/20 mono"
+                  className="bg-[var(--bg-secondary)] text-[var(--text-primary)] text-lg font-black w-16 text-center py-2 rounded-xl outline-none border border-[var(--border-ui)] mono"
                 />
               </div>
             </div>
           </section>
 
-          <section className="space-y-1.5">
-            <h3 className="text-[7px] font-black text-zinc-600 uppercase tracking-widest ml-1 flex items-center gap-1">
-              <Palette size={10} className="text-cyan-500" /> AMBIENTE
+          <section className="space-y-2">
+            <h3 className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 flex items-center gap-2">
+              <Palette size={12} className="text-[var(--cyan-accent)]" /> VISUAL HUD
             </h3>
             <button 
               onClick={onToggleTheme}
-              className="w-full glass p-3 rounded-2xl border-white/5 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+              className={`w-full ui-card p-4 flex flex-col items-center justify-center gap-2 active:scale-95 transition-all ${theme === 'light' ? 'bg-zinc-100' : ''}`}
             >
-              <div className={`text-xs ${theme === 'dark' ? 'text-cyan-500' : 'text-orange-500'}`}>
-                {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+              <div className={theme === 'dark' ? 'text-[var(--cyan-accent)]' : 'text-orange-500'}>
+                {theme === 'dark' ? <Moon size={22} /> : <Sun size={22} />}
               </div>
-              <span className="text-[7px] font-black uppercase text-zinc-400">{theme === 'dark' ? 'NOTURNO' : 'DIURNO'}</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-[var(--text-primary)]">{theme === 'dark' ? 'NOTURNO' : 'DIURNO'}</span>
             </button>
           </section>
         </div>
 
-        {/* PLANEJAMENTO DE METAS */}
-        <section className="space-y-1.5">
-          <h3 className="text-[7px] font-black text-zinc-600 uppercase tracking-widest ml-1 flex items-center gap-1">
-            <Target size={10} className="text-cyan-500" /> PLANEJAMENTO MENSAL
+        <section className="space-y-2">
+          <h3 className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 flex items-center gap-2">
+            <Target size={12} className="text-[var(--cyan-accent)]" /> PLANEJAMENTO MENSAL
           </h3>
-          <div className="glass p-4 rounded-3xl border-white/10 space-y-3 bg-zinc-950/20">
+          <div className="ui-card p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[7px] text-zinc-500 font-black uppercase">META BRUTA</span>
-              <div className="flex items-center gap-2 bg-black px-3 py-2 rounded-xl border border-white/5">
-                <span className="text-cyan-500 text-xs font-black italic">R$</span>
+              <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase">META BRUTA ALVO</span>
+              <div className="flex items-center gap-2 bg-[var(--bg-secondary)] px-4 py-3 rounded-2xl border border-[var(--border-ui)]">
+                <span className="text-[var(--cyan-accent)] text-sm font-black italic">R$</span>
                 <input 
                   type="number" 
                   value={dailyGoal} 
                   onChange={(e) => setDailyGoal(Number(e.target.value))}
-                  className="bg-transparent text-white text-lg font-black w-24 focus:outline-none mono italic"
+                  className="bg-transparent text-[var(--text-primary)] text-xl font-black w-28 focus:outline-none mono italic"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/5">
-                <div className="text-center">
-                    <span className="text-[6px] font-black text-zinc-600 uppercase block">MANHÃ</span>
-                    <div className="text-[9px] font-black text-white mono italic">R${(dailyGoal / 30 * 0.4).toFixed(0)}</div>
+            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[var(--border-ui)]">
+                <div className="text-center p-2 bg-[var(--bg-secondary)] rounded-xl">
+                    <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase block">DIÁRIA</span>
+                    <div className="text-[11px] font-black italic">R${(dailyGoal / 30).toFixed(0)}</div>
                 </div>
-                <div className="text-center">
-                    <span className="text-[6px] font-black text-zinc-600 uppercase block">TARDE</span>
-                    <div className="text-[9px] font-black text-white mono italic">R${(dailyGoal / 30 * 0.25).toFixed(0)}</div>
+                <div className="text-center p-2 bg-[var(--bg-secondary)] rounded-xl">
+                    <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase block">HORA (10H)</span>
+                    <div className="text-[11px] font-black italic">R${(dailyGoal / 30 / 10).toFixed(0)}</div>
                 </div>
-                <div className="text-center">
-                    <span className="text-[6px] font-black text-zinc-600 uppercase block">NOITE</span>
-                    <div className="text-[9px] font-black text-white mono italic">R${(dailyGoal / 30 * 0.35).toFixed(0)}</div>
+                <div className="text-center p-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--emerald-accent)]/20">
+                    <span className="text-[7px] font-black text-[var(--emerald-accent)] uppercase block">LUCRO EST.</span>
+                    <div className="text-[11px] font-black italic text-[var(--emerald-accent)]">R${(dailyGoal * 0.6 / 30).toFixed(0)}</div>
                 </div>
             </div>
           </div>
         </section>
 
-        {/* ACORDOS E LOGOUT */}
         <button 
           onClick={onLogout}
-          className="w-full bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[7px] flex items-center justify-center gap-2 active:scale-95 transition-all"
+          className="w-full bg-[var(--red-accent)]/10 text-[var(--red-accent)] border border-[var(--red-accent)]/20 py-5 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-6 shadow-sm"
         >
-          ENCERRAR PROTOCOLO <LogOut size={12} />
+          ENCERRAR PROTOCOLO <LogOut size={16} />
         </button>
       </div>
     </div>

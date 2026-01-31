@@ -2,8 +2,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Journey, BudgetBucket, DashboardConfig } from '../types';
 import { 
-  Zap, Mic, Radar as RadarIcon, Timer, Edit3, Activity, Gauge, Box, Compass, ShieldCheck, 
-  Home, CreditCard, Car, PiggyBank, Power, RotateCcw, XCircle, Pencil
+  Zap, Mic, Radar as RadarIcon, Timer, Activity, Box, Compass, 
+  Home, CreditCard, Car, PiggyBank, Power, XCircle, Pencil, Plus
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -26,10 +26,10 @@ interface DashboardProps {
 }
 
 const BUCKET_ICONS: Record<string, React.ReactNode> = {
-  '1': <Car size={14} className="text-cyan-400" />,
-  '2': <CreditCard size={14} className="text-purple-400" />,
-  '3': <Home size={14} className="text-emerald-400" />,
-  '4': <PiggyBank size={14} className="text-orange-400" />,
+  '1': <Car size={14} className="text-[var(--cyan-accent)]" />,
+  '2': <CreditCard size={14} className="text-purple-500" />,
+  '3': <Home size={14} className="text-[var(--emerald-accent)]" />,
+  '4': <PiggyBank size={14} className="text-orange-500" />,
 };
 
 const Dashboard: React.FC<DashboardProps> = ({ 
@@ -40,37 +40,26 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [startKm, setStartKm] = useState(currentKm);
   const [shiftTime, setShiftTime] = useState('00:00:00');
 
-  const costPerKm = dashboardConfig.costPerKm || 0.45;
-
   const todayStats = useMemo(() => {
     const now = new Date();
     const isToday = (t: number) => {
       const d = new Date(t);
       return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     };
-    let gross = 0, expenses = 0, kmTravelled = 0;
-    
+    let gross = 0, kmTravelled = 0;
     history.forEach(j => { 
       if (isToday(j.startTime)) { 
         gross += j.rides.reduce((a, r) => a + r.value, 0); 
-        expenses += j.expenses.reduce((a, e) => a + e.value, 0);
         kmTravelled += Math.max(0, (j.endKm || j.startKm) - j.startKm);
       } 
     });
-
     if (activeJourney) {
-      gross += activeJourney.rides.reduce((a, r) => a + r.value, 0);
-      expenses += activeJourney.expenses.reduce((a, e) => a + e.value, 0);
-      kmTravelled += Math.max(0, currentKm - activeJourney.startKm);
+        gross += activeJourney.rides.reduce((a, r) => a + r.value, 0);
+        kmTravelled += Math.max(0, currentKm - activeJourney.startKm);
     }
-
-    const depreciation = kmTravelled * costPerKm;
-    const realNet = gross - expenses - depreciation;
-    const dailyGoalAmount = 380; 
-    const progressToDailyGoal = (realNet / dailyGoalAmount) * 100;
-    
-    return { gross, expenses, kmTravelled, depreciation, realNet, progress: Math.min(100, progressToDailyGoal) };
-  }, [history, activeJourney, currentKm, costPerKm]);
+    const realNet = gross - (kmTravelled * (dashboardConfig.costPerKm || 0.45));
+    return { realNet, kmTravelled, progress: Math.min(100, (realNet / 380) * 100) };
+  }, [history, activeJourney, currentKm, dashboardConfig.costPerKm]);
 
   useEffect(() => {
     if (activeJourney) {
@@ -93,152 +82,138 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  const confirmResetBucket = (id: string, label: string) => {
-    if (confirm(`Deseja zerar o valor acumulado de "${label}"?`)) onResetSingleBucket(id);
+  const handleManualAddValue = (id: string, currentAmount: number, label: string) => {
+    const valStr = prompt(`Quanto deseja adicionar a "${label}"? (R$)`);
+    const val = parseFloat(valStr || "0");
+    if (!isNaN(val) && val > 0) {
+      const newBuckets = buckets.map(b => b.id === id ? { ...b, currentAmount: b.currentAmount + val } : b);
+      onUpdateBuckets(newBuckets);
+    }
   };
 
   return (
-    <div className="p-4 pb-48 space-y-4 animate-in fade-in duration-700 overflow-y-auto no-scrollbar h-full relative z-10">
+    <div className="p-4 pb-48 space-y-4 overflow-y-auto no-scrollbar h-full relative z-10">
       
-      {/* HEADER HUD CONSOLIDADO */}
-      <div className="flex justify-between items-center shrink-0">
+      {/* HEADER TÁTICO COMPACTO */}
+      <div className="flex justify-between items-center py-1">
         <div className="flex items-center gap-2">
-           <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></div>
-           <h1 className="text-sm font-black text-white italic uppercase tracking-tighter">faturandoaltor15.0</h1>
+           <div className="w-2 h-2 rounded-full bg-[var(--cyan-accent)] animate-pulse"></div>
+           <h1 className="text-[11px] font-extrabold uppercase tracking-tighter">FaturandoAlto <span className="text-[var(--cyan-accent)]">PRO 16.2</span></h1>
         </div>
-        <div className="flex gap-1.5">
-           <button onClick={onOpenRadar} className="w-8 h-8 glass rounded-lg flex items-center justify-center text-cyan-500 border-cyan-500/10"><RadarIcon size={14}/></button>
-           <button onClick={onStartVoice} className="w-8 h-8 glass rounded-lg flex items-center justify-center text-red-500 border-red-500/10"><Mic size={14}/></button>
+        <div className="flex gap-2">
+           <button onClick={onOpenRadar} className="w-9 h-9 ui-card flex items-center justify-center text-[var(--cyan-accent)] btn-active"><RadarIcon size={16}/></button>
+           <button onClick={onStartVoice} className="w-9 h-9 ui-card flex items-center justify-center text-[var(--red-accent)] btn-active"><Mic size={16}/></button>
         </div>
       </div>
 
-      {/* PAINEL DE PERFORMANCE COMPACTO */}
-      <div className="grid grid-cols-5 gap-2">
-         <button 
-           onClick={onGoToSettings} 
-           className="col-span-3 glass rounded-3xl p-4 border-white/5 flex flex-col items-center justify-center relative active:scale-95 transition-all h-32"
-         >
-            <span className="text-[6px] font-black text-zinc-600 uppercase tracking-widest mb-1">LUCRO REAL HOJE</span>
-            <div className="flex items-baseline gap-0.5">
-               <span className="text-cyan-500 text-xs font-black italic">R$</span>
-               <span className="text-3xl font-black text-white mono italic tracking-tighter">{todayStats.realNet.toFixed(0)}</span>
+      {/* PERFORMANCE HUD */}
+      <div className="grid grid-cols-12 gap-2">
+         <div onClick={onGoToSettings} className="col-span-12 ui-card p-4 flex flex-col justify-center h-24 btn-active">
+            <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">LUCRO REAL HOJE</span>
+            <div className="flex items-baseline gap-1">
+               <span className="text-[var(--cyan-accent)] text-xs font-black italic">R$</span>
+               <span className="text-3xl font-black mono italic tracking-tighter">{todayStats.realNet.toFixed(0)}</span>
             </div>
-            <div className="mt-2 w-full h-1 bg-zinc-950 rounded-full overflow-hidden">
-               <div className="h-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]" style={{ width: `${todayStats.progress}%` }}></div>
+            <div className="mt-2 w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden border border-[var(--border-ui)]">
+               <div className="h-full bg-[var(--cyan-accent)]" style={{ width: `${todayStats.progress}%` }}></div>
             </div>
-            <Edit3 size={8} className="absolute bottom-3 right-3 text-zinc-700" />
-         </button>
+         </div>
 
-         <div className="col-span-2 grid grid-rows-2 gap-2 h-32">
-            <div className="glass rounded-2xl p-3 border-white/5 flex flex-col justify-center">
-               <span className="text-[6px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-1"><Compass size={8}/> {todayStats.kmTravelled} KM</span>
-            </div>
-            <div className="glass rounded-2xl p-3 border-emerald-500/10 flex flex-col justify-center bg-emerald-500/5">
-               <span className="text-[6px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-1"><Gauge size={8}/> R$ {(todayStats.gross / Math.max(1, todayStats.kmTravelled)).toFixed(2)}</span>
-            </div>
+         <div className="col-span-6 ui-card p-3 flex flex-col justify-center h-16">
+            <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1"><Compass size={10}/> DISTÂNCIA</span>
+            <div className="text-lg font-black italic mono leading-none">{todayStats.kmTravelled} <span className="text-[8px]">KM</span></div>
+         </div>
+         <div className="col-span-6 ui-card p-3 flex flex-col justify-center h-16">
+            <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1"><Zap size={10}/> PROGRESSO</span>
+            <div className="text-lg font-black italic mono text-[var(--emerald-accent)] leading-none">{todayStats.progress.toFixed(0)}%</div>
          </div>
       </div>
 
-      {/* RESERVAS ATIVAS COMPACTAS */}
+      {/* RESERVAS - COM ÁREA DE ROLAGEM INTERNA */}
       <div className="space-y-2">
         <div className="flex justify-between items-center px-1">
-           <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Box size={10} className="text-cyan-500" /> RESERVAS ATIVAS
+           <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+              <Box size={12} className="text-[var(--cyan-accent)]" /> RESERVAS ATIVAS
            </span>
-           <button onClick={onResetBuckets} className="text-[6px] font-black text-red-500 uppercase tracking-widest">Zerar Tudo</button>
+           <button onClick={onResetBuckets} className="text-[7px] font-black text-[var(--red-accent)] uppercase bg-[var(--red-accent)]/10 px-2 py-1 rounded-md border border-[var(--red-accent)]/20 active:scale-95">ZERAR TODOS</button>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
-           {buckets.map(bucket => {
-              const progress = (bucket.currentAmount / bucket.goalAmount) * 100;
-              return (
-                <div key={bucket.id} className="glass rounded-2xl p-3 border-white/5 flex flex-col justify-between h-24 relative overflow-hidden">
-                  <div className="flex justify-between items-start">
-                    <div className="w-6 h-6 rounded-lg bg-black/40 flex items-center justify-center border border-white/5">
-                       {BUCKET_ICONS[bucket.id] || <Zap size={10}/>}
+        {/* CONTAINER COM ROLAGEM INTERNA - Padding ajustado */}
+        <div className="max-h-[260px] overflow-y-auto pr-1 no-scrollbar space-y-2 pb-4">
+            <div className="grid grid-cols-2 gap-2 pb-2">
+            {buckets.map(bucket => (
+                <div key={bucket.id} className="ui-card p-3 flex flex-col justify-between h-28 shrink-0">
+                    <div className="flex justify-between items-start">
+                        <div className="w-7 h-7 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center border border-[var(--border-ui)] shrink-0">
+                            {BUCKET_ICONS[bucket.id] || <Zap size={12}/>}
+                        </div>
+                        <div className="flex gap-0.5">
+                            <button onClick={() => handleManualAddValue(bucket.id, bucket.currentAmount, bucket.label)} className="p-1.5 text-[var(--emerald-accent)] active:scale-125 transition-transform"><Plus size={14}/></button>
+                            <button onClick={() => handleEditBucketLabel(bucket.id, bucket.label)} className="p-1.5 text-[var(--text-secondary)] active:text-[var(--cyan-accent)]"><Pencil size={12}/></button>
+                            <button onClick={() => { if(confirm(`Zerar ${bucket.label}?`)) onResetSingleBucket(bucket.id); }} className="p-1.5 text-[var(--red-accent)]/40 active:text-[var(--red-accent)]"><XCircle size={12}/></button>
+                        </div>
                     </div>
-                    <div className="flex gap-1">
-                       <button onClick={() => handleEditBucketLabel(bucket.id, bucket.label)} className="text-zinc-700 hover:text-cyan-500"><Pencil size={8} /></button>
-                       <button onClick={() => confirmResetBucket(bucket.id, bucket.label)} className="text-zinc-700 hover:text-red-500"><XCircle size={8} /></button>
+                    <div className="mt-1">
+                        <span className="text-[8px] font-black text-[var(--text-primary)] uppercase block truncate">{bucket.label}</span>
+                        <div className="flex justify-between items-end mt-1">
+                            <div className="text-lg font-black italic mono leading-none">R${bucket.currentAmount.toFixed(0)}</div>
+                            <div className="w-10 h-1 bg-[var(--bg-secondary)] rounded-full overflow-hidden border border-[var(--border-ui)] mb-1">
+                                <div className="h-full bg-[var(--cyan-accent)]" style={{ width: `${Math.min(100, (bucket.currentAmount/bucket.goalAmount)*100)}%` }}></div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[6px] font-black text-zinc-500 uppercase block truncate max-w-[60%]">{bucket.label}</span>
-                      <span className="text-[7px] font-black text-white mono">R${bucket.currentAmount.toFixed(0)}</span>
-                    </div>
-                    <div className="w-full h-1 bg-zinc-950 rounded-full mt-1 overflow-hidden border border-white/5">
-                       <div className="h-full bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.4)]" style={{ width: `${Math.min(100, progress)}%` }}></div>
-                    </div>
-                  </div>
                 </div>
-              );
-           })}
+            ))}
+            </div>
         </div>
       </div>
 
-      {/* BOTÃO DE IGNIÇÃO - REPOSICIONADO PARA BAIXO */}
-      {!activeJourney ? (
-        <div className="fixed bottom-22 left-6 right-6 z-50 transition-all duration-300">
-           <div className="p-0.5 bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl">
-             <button 
-                onClick={() => setShowStartKmModal(true)}
-                className="w-full bg-gradient-to-b from-zinc-800 to-zinc-950 p-4 rounded-[22px] flex flex-col items-center gap-2 active:scale-95 transition-all group overflow-hidden relative"
-              >
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-cyan-500/30"></div>
-                <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded-full bg-zinc-950 border border-cyan-500/30 flex items-center justify-center text-cyan-500">
-                      <Power size={16} />
-                   </div>
-                   <div className="text-left">
-                      <span className="font-black uppercase tracking-[0.3em] text-[9px] italic text-white block">ATIVAR PROTOCOLO</span>
-                      <span className="text-[6px] font-black text-cyan-500/50 uppercase tracking-widest">SISTEMA V15.0</span>
-                   </div>
-                </div>
-              </button>
-           </div>
-        </div>
-      ) : (
-        <div className="fixed bottom-22 left-6 right-6 z-50">
-           <div className="glass neon-border-cyan rounded-3xl p-4 flex items-center justify-between border-cyan-500/20">
+      {/* BOTÃO OPERACIONAL FIXO - Elevado para evitar colisão com o menu inferior */}
+      <div className="fixed bottom-28 left-4 right-4 z-[60]">
+        {!activeJourney ? (
+           <button 
+             onClick={() => setShowStartKmModal(true)}
+             className="w-full bg-[var(--text-primary)] text-[var(--bg-primary)] p-4 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl border-2 border-transparent"
+           >
+              <div className="w-9 h-9 rounded-full bg-[var(--bg-primary)] flex items-center justify-center text-[var(--cyan-accent)] shadow-lg">
+                <Power size={18} />
+              </div>
+              <div className="text-left">
+                <span className="font-black uppercase tracking-widest text-[11px] block leading-none">ATIVAR PROTOCOLO</span>
+                <span className="text-[7px] font-bold uppercase opacity-60">SISTEMA V16.2 READY</span>
+              </div>
+           </button>
+        ) : (
+           <div className="ui-card p-4 flex items-center justify-between shadow-xl">
               <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-xl bg-zinc-950 flex items-center justify-center text-cyan-500 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                 <div className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] flex items-center justify-center text-[var(--cyan-accent)] border border-[var(--border-ui)]">
                     <Timer size={18} />
                  </div>
                  <div>
-                    <span className="text-[6px] font-black text-zinc-500 uppercase tracking-widest block">EM OPERAÇÃO</span>
-                    <div className="text-lg font-black text-white mono italic leading-none">{shiftTime}</div>
+                    <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase block">MISSÃO EM CURSO</span>
+                    <div className="text-xl font-black italic mono leading-none">{shiftTime}</div>
                  </div>
               </div>
-              <div className="text-[7px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                 <Activity size={8} className="animate-pulse" /> MOTOR OK
+              <div className="text-[8px] font-black text-[var(--emerald-accent)] uppercase flex items-center gap-1.5 bg-[var(--emerald-accent)]/10 px-2 py-1.5 rounded-full border border-[var(--emerald-accent)]/20">
+                 <div className="w-1.5 h-1.5 bg-[var(--emerald-accent)] rounded-full animate-pulse"></div> ATIVO
               </div>
            </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {showStartKmModal && (
-        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[600] p-8 flex flex-col justify-center animate-in zoom-in duration-300">
-           <div className="space-y-10 text-center">
-              <div className="space-y-2">
-                 <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-cyan-500 mx-auto border border-white/5 mb-4 shadow-2xl">
-                    <ShieldCheck size={32} />
-                 </div>
-                 <h3 className="text-xl font-black text-white italic uppercase tracking-tighter leading-tight">Sync do Veículo</h3>
-                 <p className="text-zinc-600 text-[8px] font-black uppercase tracking-widest">AJUSTE O ODÔMETRO INICIAL</p>
-              </div>
-              <div className="relative">
-                <input 
-                  type="number" value={startKm} 
-                  onChange={e => setStartKm(Number(e.target.value))} 
-                  className="bg-transparent text-white text-center text-6xl font-black w-full mono outline-none border-b border-zinc-800 focus:border-cyan-500/50 pb-2 transition-colors" 
-                  autoFocus 
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                 <button onClick={() => setShowStartKmModal(false)} className="py-5 rounded-2xl glass text-zinc-600 font-black uppercase text-[9px] tracking-widest">CANCELAR</button>
-                 <button onClick={() => { onStartJourney(startKm); setShowStartKmModal(false); }} className="py-5 rounded-2xl bg-cyan-500 text-black font-black uppercase text-[9px] tracking-widest shadow-xl shadow-cyan-500/30">INICIAR</button>
+        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[600] p-8 flex flex-col justify-center animate-in zoom-in duration-200">
+           <div className="text-center space-y-6">
+              <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Sincronizar Odômetro</h3>
+              <input 
+                type="number" value={startKm} 
+                onChange={e => setStartKm(Number(e.target.value))} 
+                className="bg-transparent text-white text-center text-6xl font-black w-full mono outline-none border-b-2 border-zinc-800 focus:border-[var(--cyan-accent)] pb-2" 
+                autoFocus 
+              />
+              <div className="grid grid-cols-2 gap-3 mt-8">
+                 <button onClick={() => setShowStartKmModal(false)} className="py-4 rounded-xl ui-card text-zinc-500 font-black uppercase text-[10px]">CANCELAR</button>
+                 <button onClick={() => { onStartJourney(startKm); setShowStartKmModal(false); }} className="py-4 rounded-xl bg-[var(--cyan-accent)] text-black font-black uppercase text-[10px]">INICIAR</button>
               </div>
            </div>
         </div>

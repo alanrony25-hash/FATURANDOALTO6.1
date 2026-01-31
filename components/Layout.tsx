@@ -12,13 +12,13 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, showNav, currentPage, setCurrentPage }) => {
   return (
-    <div className="flex flex-col flex-1 h-screen dynamic-bg overflow-hidden">
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
+    <div className="flex flex-col flex-1 h-screen overflow-hidden relative">
+      <main className={`flex-1 overflow-y-auto no-scrollbar ${showNav ? 'pb-32' : ''}`}>
         {children}
       </main>
       
       {showNav && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[var(--nav-bg)] backdrop-blur-2xl border-t border-[var(--border-glass)] pb-6 pt-3 px-4 flex justify-between items-center safe-area-bottom z-50">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[var(--nav-bg)] border-t border-[var(--border-ui)] pb-8 pt-4 px-6 flex justify-between items-center z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
           <NavItem 
             active={currentPage === AppState.DASHBOARD} 
             icon={<LayoutDashboard size={20} />} 
@@ -58,11 +58,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, showNav, currentPage, 
 const NavItem = ({ active, icon, label, onClick }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void }) => (
   <button 
     onClick={onClick}
-    className={`flex flex-col items-center gap-1 transition-all ${active ? 'text-cyan-500' : 'text-zinc-600 hover:text-zinc-400'}`}
+    className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${active ? 'nav-active' : 'text-[var(--text-secondary)] opacity-50'}`}
   >
-    <div className={`${active ? 'drop-shadow-[0_0_5px_rgba(6,182,212,0.4)]' : ''}`}>
-      {icon}
-    </div>
-    <span className="text-[6px] font-black uppercase tracking-widest">{label}</span>
+    <div>{icon}</div>
+    <span className="text-[7px] font-black uppercase tracking-widest">{label}</span>
   </button>
 );
