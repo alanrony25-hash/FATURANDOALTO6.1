@@ -52,7 +52,6 @@ const App: React.FC = () => {
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(DEFAULT_DASHBOARD_CONFIG);
   const [currentKm, setCurrentKm] = useState<number>(45750);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark');
-  const [isPopUpMode, setIsPopUpMode] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
   const [showRadar, setShowRadar] = useState(false);
 
@@ -81,11 +80,7 @@ const App: React.FC = () => {
     
     if (savedHistory) setHistory(JSON.parse(savedHistory));
     if (savedActiveJourney) setActiveJourney(JSON.parse(savedActiveJourney));
-    if (savedMaint) {
-        setMaintenanceItems(JSON.parse(savedMaint));
-    } else {
-        setMaintenanceItems(DEFAULT_MAINTENANCE); // Fallback se vazio
-    }
+    if (savedMaint) setMaintenanceItems(JSON.parse(savedMaint));
     if (savedKm) setCurrentKm(Number(savedKm));
     
     const bucketsSaved = localStorage.getItem('budget_buckets');
@@ -145,6 +140,12 @@ const App: React.FC = () => {
     setCurrentPage(AppState.DAY_DETAIL);
   }, [activeJourney, buckets, dashboardConfig.costPerKm]);
 
+  const handleDeleteHistory = (id: string) => {
+    const newHistory = history.filter(j => j.id !== id);
+    setHistory(newHistory);
+    localStorage.setItem('driver_history', JSON.stringify(newHistory));
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen dynamic-bg relative overflow-hidden flex flex-col shadow-2xl border-x border-white/5">
       <Layout showNav={![AppState.SPLASH, AppState.LOGIN, AppState.REGISTER, AppState.ACTIVE_JOURNEY].includes(currentPage)} currentPage={currentPage} setCurrentPage={setCurrentPage}>
@@ -162,9 +163,9 @@ const App: React.FC = () => {
           onGoToSettings={() => setCurrentPage(AppState.SETTINGS)}
         />}
         {currentPage === AppState.ACTIVE_JOURNEY && activeJourney && (
-          <ActiveJourney journey={activeJourney} onEndJourney={endJourney} dailyGoal={monthlyGoal/25} onMinimize={() => setIsPopUpMode(true)} />
+          <ActiveJourney journey={activeJourney} onEndJourney={endJourney} dailyGoal={monthlyGoal/25} onMinimize={() => {}} />
         )}
-        {currentPage === AppState.HISTORY && <History history={history} onDeleteJourney={(id) => setHistory(h => h.filter(j => j.id !== id))} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
+        {currentPage === AppState.HISTORY && <History history={history} onDeleteJourney={handleDeleteHistory} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.MAINTENANCE && <Maintenance currentKm={currentKm} items={maintenanceItems} onUpdateItems={(it) => { setMaintenanceItems(it); localStorage.setItem('maintenance_logs', JSON.stringify(it)); }} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={setBuckets} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { localStorage.removeItem('logged_user'); setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig} />}
         {currentPage === AppState.DAY_DETAIL && history[0] && <DayDetail journey={history[0]} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
