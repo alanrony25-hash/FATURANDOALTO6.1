@@ -7,8 +7,6 @@ interface RadarProProps {
   onClose: () => void;
 }
 
-// Fix: Augmenting AIStudio interface instead of redeclaring window.aistudio 
-// to avoid conflicts with existing global definitions where window.aistudio is already typed as AIStudio.
 declare global {
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
@@ -32,24 +30,28 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
     setIsGpsReady(false);
     setNeedsApiKey(false);
 
+    if (!navigator.geolocation) {
+      setError("Seu dispositivo não suporta Geolocalização.");
+      setLoading(false);
+      return;
+    }
+
     const options = {
-      timeout: 10000,
+      timeout: 15000, // Increased timeout for mobile cellular networks
       enableHighAccuracy: true,
-      maximumAge: 0
+      maximumAge: 30000 // Accept cache up to 30s
     };
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLocation({ lat: pos.coords.latitude, longitude: pos.coords.longitude } as any);
-        // Standard navigator.geolocation return coords with latitude and longitude.
-        // We set location state with shorthand names.
         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setIsGpsReady(true);
       },
       (err) => {
           console.error("Erro GPS:", err);
+          // Fallback coordinate (São Paulo) if location fails on mobile
           setLocation({ lat: -23.5505, lng: -46.6333 }); 
-          setError("Sinal de satélite instável. Usando última posição conhecida.");
+          setError("Sinal de satélite instável. Usando posição aproximada.");
           setIsGpsReady(true); 
       },
       options
@@ -62,9 +64,11 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
 
   const handleSelectKey = async () => {
     try {
-      await window.aistudio.openSelectKey();
-      setNeedsApiKey(false);
-      requestLocation();
+      if (window.aistudio) {
+        await window.aistudio.openSelectKey();
+        setNeedsApiKey(false);
+        requestLocation();
+      }
     } catch (e) {
       console.error("Erro ao selecionar chave:", e);
     }
@@ -76,13 +80,12 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
     setError(null);
     
     try {
-      // Cria nova instância para garantir o uso da chave mais recente
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       if (mode === 'MAPS') {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: "Encontre postos com GNV, postos de combustíveis com bons preços e áreas de descanso para motoristas de aplicativo próximos a minha coordenada. Retorne locais reais.",
+          contents: "Encontre postos com GNV, postos de combustíveis com bons preços e áreas de descanso para motoristas de aplicativo próximos a minha coordenada. Retorne locais reais com nomes corretos.",
           config: {
             tools: [{ googleMaps: {} }],
             toolConfig: { retrievalConfig: { latLng: { latitude: location.lat, longitude: location.lng } } }
@@ -94,7 +97,7 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
       } else {
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: "Liste grandes eventos, shows e jogos de futebol que acontecem HOJE e AMANHÃ em Fortaleza ou cidades próximas. Forneça dicas estratégicas de faturamento para motoristas.",
+          contents: "Liste grandes eventos, shows e jogos de futebol que acontecem HOJE e AMANHÃ em grandes cidades brasileiras (priorize a região próxima a SP/Fortaleza). Forneça dicas estratégicas de faturamento para motoristas.",
           config: { tools: [{ googleSearch: {} }] }
         });
         setEventAdvice(response.text || "");
@@ -106,9 +109,9 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
       
       if (errorMsg.includes("Requested entity was not found") || errorMsg.includes("404")) {
         setNeedsApiKey(true);
-        setError("Ativação Necessária: Selecione uma chave de API de um projeto com faturamento para usar o Radar.");
+        setError("Ativação Necessária: Selecione uma chave de API paga para usar o Radar Inteligente.");
       } else {
-        setError("Falha na varredura orbital. Verifique a conexão 5G/4G.");
+        setError("Falha na varredura orbital. Verifique o sinal de dados.");
       }
     } finally {
       setLoading(false);

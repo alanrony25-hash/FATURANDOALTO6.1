@@ -157,6 +157,12 @@ const App: React.FC = () => {
     localStorage.setItem('driver_history', JSON.stringify(newHistory));
   };
 
+  const resetSingleBucket = (id: string) => {
+    const nb = buckets.map(b => b.id === id ? {...b, currentAmount: 0} : b);
+    setBuckets(nb);
+    localStorage.setItem('budget_buckets', JSON.stringify(nb));
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen dynamic-bg relative overflow-hidden flex flex-col shadow-2xl border-x border-white/5">
       <Layout showNav={![AppState.SPLASH, AppState.LOGIN, AppState.REGISTER, AppState.ACTIVE_JOURNEY].includes(currentPage)} currentPage={currentPage} setCurrentPage={setCurrentPage}>
@@ -167,7 +173,7 @@ const App: React.FC = () => {
           history={history} monthlyGoal={monthlyGoal} onUpdateGoal={setMonthlyGoal} buckets={buckets} 
           onUpdateBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }}
           onResetBuckets={() => { const nb = buckets.map(b => ({...b, currentAmount: 0})); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
-          onResetSingleBucket={(id) => { const nb = buckets.map(b => b.id === id ? {...b, currentAmount: 0} : b); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
+          onResetSingleBucket={resetSingleBucket}
           onStartJourney={startJourney} activeJourney={activeJourney} onViewHistory={() => setCurrentPage(AppState.HISTORY)} currentKm={currentKm}
           onStartVoice={() => setShowVoice(true)} onOpenRadar={() => setShowRadar(true)}
           dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig}
@@ -178,7 +184,14 @@ const App: React.FC = () => {
         )}
         {currentPage === AppState.HISTORY && <History history={history} onDeleteJourney={handleDeleteHistory} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.MAINTENANCE && <Maintenance currentKm={currentKm} items={maintenanceItems} onUpdateItems={(it) => { setMaintenanceItems(it); localStorage.setItem('maintenance_logs', JSON.stringify(it)); }} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
-        {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { localStorage.removeItem('logged_user'); setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig} />}
+        {currentPage === AppState.SETTINGS && <Settings 
+          dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} 
+          buckets={buckets} setBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }} 
+          onResetSingleBucket={resetSingleBucket}
+          onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { localStorage.removeItem('logged_user'); setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} 
+          theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} 
+          dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig} 
+        />}
         {currentPage === AppState.DAY_DETAIL && history[0] && <DayDetail journey={history[0]} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.FINANCE_INSIGHTS && <FinancialInsights history={history} monthlyGoal={monthlyGoal} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
       </Layout>

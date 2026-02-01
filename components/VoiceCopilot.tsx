@@ -22,7 +22,6 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
   const nextStartTimeRef = useRef<number>(0);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
-  // Utilitários de codificação/decodificação PCM conforme diretrizes
   const encode = (bytes: Uint8Array) => {
     let binary = '';
     const len = bytes.byteLength;
@@ -57,15 +56,20 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
     setStatus('Iniciando Protocolo de Voz...');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+      // Mobile browsers: AudioContext must be created or resumed within a user gesture
       const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
+      // Force resume for mobile Safari compatibility
+      if (inCtx.state === 'suspended') await inCtx.resume();
+      if (outCtx.state === 'suspended') await outCtx.resume();
+
       audioContextRef.current = inCtx;
       outContextRef.current = outCtx;
 
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
@@ -99,6 +103,9 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
           onmessage: async (message) => {
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio && outCtx) {
+              // Ensure audio output context is still active (mobile energy saving might suspend it)
+              if (outCtx.state === 'suspended') await outCtx.resume();
+              
               setIsSpeaking(true);
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outCtx.currentTime);
               
@@ -124,11 +131,14 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
             }
           },
           onerror: (e) => {
-            console.error(e);
+            console.error("Erro Live:", e);
             setError('Falha na Conexão Live');
             setStatus('Erro de Sincronização');
+            setIsConnecting(false);
           },
-          onclose: () => onClose()
+          onclose: () => {
+            console.log("Conexão Voz Encerrada");
+          }
         },
         config: {
           responseModalities: [Modality.AUDIO],
@@ -138,8 +148,8 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
       });
       sessionRef.current = await sessionPromise;
     } catch (e) {
-      console.error(e);
-      setError('Acesso ao Microfone Negado');
+      console.error("Erro ao iniciar sistema de voz:", e);
+      setError('Permissão ou API Negada');
       setIsConnecting(false);
     }
   };
@@ -154,7 +164,7 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
 
   return (
     <div className="fixed inset-0 z-[1000] bg-[var(--bg-primary)] flex flex-col items-center justify-center p-10 animate-in fade-in duration-500">
-      <button onClick={onClose} className="absolute top-10 right-10 w-12 h-12 ui-card flex items-center justify-center text-[var(--text-secondary)]">
+      <button onClick={onClose} className="absolute top-10 right-10 w-12 h-12 ui-card flex items-center justify-center text-[var(--text-secondary)] active:scale-90 transition-all">
         <X size={24} />
       </button>
 
