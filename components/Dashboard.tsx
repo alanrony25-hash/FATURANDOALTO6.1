@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Journey, BudgetBucket, DashboardConfig } from '../types';
 import { 
   Zap, Mic, Radar as RadarIcon, Timer, Activity, Box, Compass, 
-  Home, CreditCard, Car, PiggyBank, Power, XCircle, Pencil, Plus, Settings as SettingsIcon,
+  Home, CreditCard, Car, PiggyBank, Power, XCircle, Pencil, Plus, Trash2, Settings as SettingsIcon,
   TrendingUp, Clock, Target, Rocket, ChevronRight
 } from 'lucide-react';
 
@@ -117,10 +117,9 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* ÁREA DE CONTEÚDO - SEM OVERFLOW-Y PARA FIXAR DOUBLE SCROLL */}
       <div className="p-4 space-y-6">
         
-        {/* ORACLE PREDICTOR & MAIN HUD */}
+        {/* ORACLE PREDICTOR */}
         <div className="grid grid-cols-12 gap-3">
            <div onClick={onGoToSettings} className="col-span-12 ui-card p-6 flex flex-col justify-center min-h-[140px] btn-active relative overflow-hidden group border-[var(--cyan-accent)]/10">
               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -153,103 +152,136 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
            </div>
-
-           <div className="col-span-4 ui-card p-4 flex flex-col items-center justify-center h-20 border-l-4 border-l-[var(--cyan-accent)]/40">
-              <span className="text-[6px] font-black text-[var(--text-secondary)] uppercase mb-1 opacity-50">R$ / HORA</span>
-              <div className="text-lg font-black italic mono text-[var(--text-primary)] leading-none">{stats.rPerHour.toFixed(0)}</div>
-           </div>
-           
-           <div className="col-span-4 ui-card p-4 flex flex-col items-center justify-center h-20">
-              <span className="text-[6px] font-black text-[var(--text-secondary)] uppercase mb-1 opacity-50">KMs</span>
-              <div className="text-lg font-black italic mono text-[var(--text-primary)] leading-none">{stats.kmTravelled}</div>
-           </div>
-
-           <div className="col-span-4 ui-card p-4 flex flex-col items-center justify-center h-20 border-r-4 border-r-[var(--emerald-accent)]/40">
-              <span className="text-[6px] font-black text-[var(--text-secondary)] uppercase mb-1 opacity-50">META MÊS</span>
-              <div className="text-lg font-black italic mono text-[var(--emerald-accent)] leading-none">R$ 11K</div>
-           </div>
         </div>
 
-        {/* BOTÃO OPERACIONAL INTEGRADO NO FLUXO (NÃO BLOQUEIA MAIS OS BALDES) */}
-        <div className="animate-in fade-in slide-in-from-top duration-700">
-          {!activeJourney ? (
-             <button 
-               onClick={() => setShowStartKmModal(true)}
-               className="w-full bg-[var(--bg-secondary)] border border-[var(--cyan-accent)]/30 py-4 px-6 rounded-[28px] flex items-center justify-between active:scale-95 transition-all shadow-xl"
-             >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[var(--cyan-accent)] shadow-[0_0_15px_rgba(34,211,238,0.3)] border border-[var(--cyan-accent)]/20">
-                    <Power size={18} />
-                  </div>
-                  <div className="text-left">
-                    <span className="font-black uppercase tracking-[0.2em] text-[11px] block leading-none italic text-white">ATIVAR PROTOCOLO</span>
-                    <span className="text-[7px] font-bold uppercase opacity-40 tracking-widest mt-1 block">SISTEMA V6.4 READY</span>
-                  </div>
+        {/* BOTÃO OPERACIONAL */}
+        {!activeJourney ? (
+           <button 
+             onClick={() => setShowStartKmModal(true)}
+             className="w-full bg-[var(--bg-secondary)] border border-[var(--cyan-accent)]/30 py-5 px-6 rounded-[28px] flex items-center justify-between active:scale-95 transition-all shadow-xl"
+           >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-full bg-black flex items-center justify-center text-[var(--cyan-accent)] shadow-[0_0_15px_rgba(34,211,238,0.3)] border border-[var(--cyan-accent)]/20">
+                  <Power size={20} />
                 </div>
-                <ChevronRight size={18} className="text-[var(--cyan-accent)] opacity-50" />
-             </button>
-          ) : (
-             <div className="ui-card p-4 flex items-center justify-between shadow-2xl bg-[#0a0a0b] border-[var(--emerald-accent)]/30 rounded-[28px]">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-[var(--cyan-accent)] border border-[var(--border-ui)]">
-                      <Timer size={20} className="animate-pulse" />
-                   </div>
-                   <div>
-                      <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase block opacity-60 italic">EM MISSÃO</span>
-                      <div className="text-2xl font-black italic mono leading-none text-white">{shiftTime}</div>
-                   </div>
+                <div className="text-left">
+                  <span className="font-black uppercase tracking-[0.2em] text-[12px] block leading-none italic text-white">INICIAR JORNADA</span>
+                  <span className="text-[7px] font-bold uppercase opacity-40 tracking-widest mt-1 block tracking-tighter">SISTEMA PRONTO</span>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <div className="text-[7px] font-black text-[var(--emerald-accent)] uppercase flex items-center gap-1.5 bg-[var(--emerald-accent)]/10 px-3 py-1.5 rounded-full border border-[var(--emerald-accent)]/20">
-                     <div className="w-1.5 h-1.5 bg-[var(--emerald-accent)] rounded-full animate-ping"></div> ONLINE
-                  </div>
+              </div>
+              <ChevronRight size={18} className="text-[var(--cyan-accent)] opacity-50" />
+           </button>
+        ) : (
+           <div className="ui-card p-5 flex items-center justify-between shadow-2xl bg-[#0a0a0b] border-[var(--emerald-accent)]/30 rounded-[28px]">
+              <div className="flex items-center gap-4">
+                 <div className="w-11 h-11 rounded-xl bg-black flex items-center justify-center text-[var(--cyan-accent)] border border-[var(--border-ui)]">
+                    <Timer size={22} className="animate-pulse" />
+                 </div>
+                 <div>
+                    <span className="text-[7px] font-black text-[var(--text-secondary)] uppercase block opacity-60 italic tracking-widest">EM MISSÃO</span>
+                    <div className="text-2xl font-black italic mono leading-none text-white">{shiftTime}</div>
+                 </div>
+              </div>
+              <div className="flex flex-col items-end">
+                <div className="text-[7px] font-black text-[var(--emerald-accent)] uppercase flex items-center gap-1.5 bg-[var(--emerald-accent)]/10 px-3 py-1.5 rounded-full border border-[var(--emerald-accent)]/20">
+                   <div className="w-1.5 h-1.5 bg-[var(--emerald-accent)] rounded-full animate-ping"></div> ONLINE
                 </div>
-             </div>
-          )}
-        </div>
+              </div>
+           </div>
+        )}
 
-        {/* RESERVAS DINÂMICAS - TOTALMENTE VISÍVEIS AGORA */}
+        {/* RESERVAS DINÂMICAS */}
         <div className="space-y-4 pt-2">
           <div className="flex justify-between items-center px-1">
              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] flex items-center gap-2 italic">
-                <Box size={14} className="text-[var(--cyan-accent)]" /> RESERVAS ATIVAS
+                <Box size={14} className="text-[var(--cyan-accent)]" /> BALDES DE RESERVA
              </span>
-             <button onClick={onResetBuckets} className="text-[7px] font-black text-[var(--red-accent)] uppercase bg-[var(--red-accent)]/10 px-3 py-1.5 rounded-lg border border-[var(--red-accent)]/20 active:scale-95">ZERAR</button>
+             <button onClick={onResetBuckets} className="text-[7px] font-black text-[var(--red-accent)] uppercase bg-[var(--red-accent)]/10 px-3 py-1.5 rounded-lg border border-[var(--red-accent)]/20 active:scale-95 transition-all">LIMPAR TODOS</button>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
-            {buckets.map(bucket => (
-                <div key={bucket.id} className="ui-card p-4 flex flex-col justify-between h-32 relative overflow-hidden active:scale-95 transition-all bg-[var(--card-bg)]">
-                    <div className="flex justify-between items-start relative z-10">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center border border-[var(--border-ui)] shadow-sm">
-                            {BUCKET_ICONS[bucket.id] || <Zap size={14}/>}
-                        </div>
-                        <button onClick={() => { 
-                          const val = prompt(`Adicionar em ${bucket.label}:`);
-                          if(val && !isNaN(Number(val))) {
-                            const nb = buckets.map(b => b.id === bucket.id ? {...b, currentAmount: b.currentAmount + Number(val)} : b);
-                            onUpdateBuckets(nb);
-                          }
-                        }} className="p-1.5 text-[var(--emerald-accent)] active:scale-125 transition-transform"><Plus size={16}/></button>
-                    </div>
-                    <div className="mt-1 relative z-10">
-                        <span className="text-[7px] font-black text-[var(--text-primary)] uppercase block truncate opacity-70 italic mb-1">{bucket.label}</span>
-                        <div className="flex justify-between items-end">
-                            <div className="text-xl font-black italic mono leading-none text-white">
-                              <span className="text-[10px] text-[var(--cyan-accent)] mr-0.5">R$</span>{bucket.currentAmount.toFixed(0)}
+            {buckets.map(bucket => {
+                const percentage = Math.min(100, Math.floor((bucket.currentAmount / bucket.goalAmount) * 100));
+                const isComplete = percentage >= 100;
+                const remaining = Math.max(0, bucket.goalAmount - bucket.currentAmount);
+                
+                return (
+                    <div key={bucket.id} className="ui-card p-5 flex flex-col justify-between h-44 relative overflow-hidden active:scale-[0.98] transition-all bg-[var(--card-bg)] border-[var(--border-ui)] hover:border-[var(--cyan-accent)]/30">
+                        <div className="flex justify-between items-start relative z-10">
+                            <div className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] flex items-center justify-center border border-[var(--border-ui)] shadow-inner">
+                                {BUCKET_ICONS[bucket.id] || <Zap size={14}/>}
                             </div>
-                            <div className="w-12 h-1 bg-[var(--bg-secondary)] rounded-full overflow-hidden border border-[var(--border-ui)] mb-1">
-                                <div className="h-full bg-[var(--cyan-accent)] shadow-[0_0_8px_var(--cyan-accent)]" style={{ width: `${Math.min(100, (bucket.currentAmount/bucket.goalAmount)*100)}%` }}></div>
+                            <div className="flex gap-1.5">
+                                <button 
+                                    onClick={(e) => { 
+                                      e.stopPropagation();
+                                      const val = prompt(`Nova meta para ${bucket.label}:`, bucket.goalAmount.toString());
+                                      if(val && !isNaN(Number(val))) {
+                                        const nb = buckets.map(b => b.id === bucket.id ? {...b, goalAmount: Number(val)} : b);
+                                        onUpdateBuckets(nb);
+                                      }
+                                    }} 
+                                    className="w-7 h-7 flex items-center justify-center text-zinc-500 bg-zinc-900 rounded-lg border border-white/5 active:bg-zinc-800 transition-all"
+                                >
+                                    <Pencil size={12}/>
+                                </button>
+                                <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if(confirm(`Zerar saldo de ${bucket.label}?`)) onResetSingleBucket(bucket.id);
+                                    }} 
+                                    className="w-7 h-7 flex items-center justify-center text-[var(--red-accent)] bg-[var(--red-accent)]/5 rounded-lg border border-[var(--red-accent)]/10 active:bg-[var(--red-accent)]/20 transition-all"
+                                >
+                                    <Trash2 size={12}/>
+                                </button>
                             </div>
                         </div>
+                        
+                        <div className="mt-2 relative z-10">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-[8px] font-black text-[var(--text-primary)] uppercase truncate opacity-70 italic">{bucket.label}</span>
+                              <span className={`text-[7px] font-black mono italic ${isComplete ? 'text-[var(--emerald-accent)]' : 'text-zinc-500'}`}>
+                                  {isComplete ? 'BATIDO' : `FALTA R$ ${remaining.toFixed(0)}`}
+                              </span>
+                            </div>
+                            
+                            <div className="flex justify-between items-end mb-2">
+                                <div className="text-xl font-black italic mono leading-none text-white">
+                                  <span className="text-[10px] text-[var(--cyan-accent)] mr-0.5">R$</span>{bucket.currentAmount.toFixed(0)}
+                                </div>
+                                <div className={`text-[9px] font-black mono italic ${isComplete ? 'text-[var(--emerald-accent)] animate-pulse' : 'text-[var(--text-secondary)] opacity-60'}`}>
+                                    {percentage}%
+                                </div>
+                            </div>
+                            
+                            <div className="w-full h-1.5 bg-black rounded-full overflow-hidden border border-white/5 relative">
+                                <div 
+                                    className={`h-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(34,211,238,0.4)] ${isComplete ? 'bg-[var(--emerald-accent)] shadow-[0_0_15px_#10b981]' : 'bg-gradient-to-r from-[var(--cyan-accent)] to-[#6366f1]'}`} 
+                                    style={{ width: `${percentage}%` }}
+                                ></div>
+                            </div>
+
+                            <button 
+                                onClick={(e) => { 
+                                  e.stopPropagation();
+                                  const val = prompt(`Injetar valor em ${bucket.label}:`);
+                                  if(val && !isNaN(Number(val))) {
+                                    const nb = buckets.map(b => b.id === bucket.id ? {...b, currentAmount: b.currentAmount + Number(val)} : b);
+                                    onUpdateBuckets(nb);
+                                  }
+                                }} 
+                                className="w-full mt-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--emerald-accent)] text-[8px] font-black uppercase tracking-widest border border-white/5 active:bg-zinc-800 transition-all flex items-center justify-center gap-1.5"
+                            >
+                                <Plus size={10}/> APORTAR
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
           </div>
         </div>
 
-        {/* ESPAÇADOR FINAL PARA GARANTIR QUE O ÚLTIMO ITEM NÃO COLE NO MENU */}
-        <div className="h-10" />
+        <div className="h-12" />
       </div>
 
       {showStartKmModal && (

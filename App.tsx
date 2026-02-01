@@ -18,10 +18,10 @@ import RadarPro from './components/RadarPro';
 import { Layout } from './components/Layout';
 
 const DEFAULT_BUCKETS: BudgetBucket[] = [
-  { id: '1', label: 'Parcela Carro', percentage: 25, currentAmount: 0, goalAmount: 2800 },
-  { id: '2', label: 'Cartões', percentage: 20, currentAmount: 0, goalAmount: 2240 },
-  { id: '3', label: 'Gastos Casa', percentage: 25, currentAmount: 0, goalAmount: 2800 },
-  { id: '4', label: 'Reserva/Poupança', percentage: 30, currentAmount: 0, goalAmount: 3360 },
+  { id: '1', label: 'Parcela Carro', percentage: 25, currentAmount: 0, goalAmount: 1802 },
+  { id: '2', label: 'Cartão de Crédito', percentage: 20, currentAmount: 0, goalAmount: 1500 },
+  { id: '3', label: 'Aluguel / Casa', percentage: 30, currentAmount: 0, goalAmount: 2200 },
+  { id: '4', label: 'Reserva Emergência', percentage: 25, currentAmount: 0, goalAmount: 5000 },
 ];
 
 const DEFAULT_MAINTENANCE: MaintenanceItem[] = [
@@ -84,7 +84,6 @@ const App: React.FC = () => {
     if (savedMaint) setMaintenanceItems(JSON.parse(savedMaint));
     if (savedKm) setCurrentKm(Number(savedKm));
     
-    // Sincronização rigorosa: Se não houver 4 baldes, força o reset para o padrão
     if (savedBuckets) {
         const parsed = JSON.parse(savedBuckets) as BudgetBucket[];
         if (parsed.length < 4) {
@@ -167,7 +166,7 @@ const App: React.FC = () => {
         {currentPage === AppState.DASHBOARD && <Dashboard 
           history={history} monthlyGoal={monthlyGoal} onUpdateGoal={setMonthlyGoal} buckets={buckets} 
           onUpdateBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }}
-          onResetBuckets={() => { const nb = DEFAULT_BUCKETS.map(b => ({...b, currentAmount: 0})); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
+          onResetBuckets={() => { const nb = buckets.map(b => ({...b, currentAmount: 0})); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
           onResetSingleBucket={(id) => { const nb = buckets.map(b => b.id === id ? {...b, currentAmount: 0} : b); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
           onStartJourney={startJourney} activeJourney={activeJourney} onViewHistory={() => setCurrentPage(AppState.HISTORY)} currentKm={currentKm}
           onStartVoice={() => setShowVoice(true)} onOpenRadar={() => setShowRadar(true)}
@@ -179,7 +178,7 @@ const App: React.FC = () => {
         )}
         {currentPage === AppState.HISTORY && <History history={history} onDeleteJourney={handleDeleteHistory} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.MAINTENANCE && <Maintenance currentKm={currentKm} items={maintenanceItems} onUpdateItems={(it) => { setMaintenanceItems(it); localStorage.setItem('maintenance_logs', JSON.stringify(it)); }} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
-        {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={setBuckets} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { localStorage.removeItem('logged_user'); setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig} />}
+        {currentPage === AppState.SETTINGS && <Settings dailyGoal={monthlyGoal} setDailyGoal={setMonthlyGoal} buckets={buckets} setBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }} onBack={() => setCurrentPage(AppState.DASHBOARD)} onLogout={() => { localStorage.removeItem('logged_user'); setCurrentUser(null); setCurrentPage(AppState.LOGIN); }} theme={theme} onToggleTheme={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig} />}
         {currentPage === AppState.DAY_DETAIL && history[0] && <DayDetail journey={history[0]} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
         {currentPage === AppState.FINANCE_INSIGHTS && <FinancialInsights history={history} monthlyGoal={monthlyGoal} onBack={() => setCurrentPage(AppState.DASHBOARD)} />}
       </Layout>

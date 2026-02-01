@@ -1,10 +1,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Radar as RadarIcon, Navigation, MapPin, ShieldAlert, Sparkles, Search, RefreshCw, Star, Globe } from 'lucide-react';
+import { X, Radar as RadarIcon, Navigation, MapPin, ShieldAlert, Sparkles, Search, RefreshCw, Star, Globe, Key } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 
 interface RadarProProps {
   onClose: () => void;
+}
+
+// Fix: Augmenting AIStudio interface instead of redeclaring window.aistudio 
+// to avoid conflicts with existing global definitions where window.aistudio is already typed as AIStudio.
+declare global {
+  interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  }
 }
 
 const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
@@ -15,29 +24,33 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
   const [eventAdvice, setEventAdvice] = useState<string>("");
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isGpsReady, setIsGpsReady] = useState(false);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
 
   const requestLocation = useCallback(() => {
     setLoading(true);
     setError(null);
     setIsGpsReady(false);
+    setNeedsApiKey(false);
 
     const options = {
-      timeout: 15000, // Aumentado para 15s (melhor para celular com sinal ruim)
+      timeout: 10000,
       enableHighAccuracy: true,
       maximumAge: 0
     };
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setLocation({ lat: pos.coords.latitude, longitude: pos.coords.longitude } as any);
+        // Standard navigator.geolocation return coords with latitude and longitude.
+        // We set location state with shorthand names.
         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setIsGpsReady(true);
       },
       (err) => {
           console.error("Erro GPS:", err);
-          // Fallback seguro mas avisando o usuário
           setLocation({ lat: -23.5505, lng: -46.6333 }); 
           setError("Sinal de satélite instável. Usando última posição conhecida.");
-          setIsGpsReady(true); // Permite continuar com fallback
+          setIsGpsReady(true); 
       },
       options
     );
@@ -47,17 +60,29 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
     requestLocation();
   }, [requestLocation]);
 
+  const handleSelectKey = async () => {
+    try {
+      await window.aistudio.openSelectKey();
+      setNeedsApiKey(false);
+      requestLocation();
+    } catch (e) {
+      console.error("Erro ao selecionar chave:", e);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     if (!location || !isGpsReady) return;
     setLoading(true);
+    setError(null);
     
     try {
+      // Cria nova instância para garantir o uso da chave mais recente
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       if (mode === 'MAPS') {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: "Encontre postos com GNV, postos de combustíveis com bons preços e áreas de descanso para motoristas de aplicativo próximos a minha coordenada.",
+          contents: "Encontre postos com GNV, postos de combustíveis com bons preços e áreas de descanso para motoristas de aplicativo próximos a minha coordenada. Retorne locais reais.",
           config: {
             tools: [{ googleMaps: {} }],
             toolConfig: { retrievalConfig: { latLng: { latitude: location.lat, longitude: location.lng } } }
@@ -68,8 +93,8 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
         if (chunks.length === 0) setError("Nenhum ponto logístico detectado nesta órbita.");
       } else {
         const response = await ai.models.generateContent({
-          model: 'gemini-3-pro-preview',
-          contents: "Quais grandes eventos (shows, futebol, festas) estão gerando alta demanda HOJE e AMANHÃ em Fortaleza? Liste locais e dicas estratégicas para motoristas.",
+          model: 'gemini-3-flash-preview',
+          contents: "Liste grandes eventos, shows e jogos de futebol que acontecem HOJE e AMANHÃ em Fortaleza ou cidades próximas. Forneça dicas estratégicas de faturamento para motoristas.",
           config: { tools: [{ googleSearch: {} }] }
         });
         setEventAdvice(response.text || "");
@@ -77,7 +102,14 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
       }
     } catch (e: any) {
       console.error("Radar Error:", e);
-      setError("Falha na varredura orbital. Verifique a conexão 5G/4G.");
+      const errorMsg = e.message || "";
+      
+      if (errorMsg.includes("Requested entity was not found") || errorMsg.includes("404")) {
+        setNeedsApiKey(true);
+        setError("Ativação Necessária: Selecione uma chave de API de um projeto com faturamento para usar o Radar.");
+      } else {
+        setError("Falha na varredura orbital. Verifique a conexão 5G/4G.");
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +117,7 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
 
   useEffect(() => { 
     if (isGpsReady) fetchData(); 
-  }, [isGpsReady, fetchData]);
+  }, [isGpsReady, fetchData, mode]);
 
   return (
     <div className="fixed inset-0 z-[2000] bg-[var(--bg-primary)] flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden">
@@ -136,21 +168,37 @@ const RadarPro: React.FC<RadarProProps> = ({ onClose }) => {
                 <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-40 block">CALIBRANDO SATÉLITES GOOGLE CLOUD</span>
             </div>
           </div>
-        ) : error && results.length === 0 ? (
+        ) : error ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-8 py-10 animate-in fade-in">
-            <div className="w-20 h-20 rounded-full bg-[var(--red-accent)]/10 flex items-center justify-center text-[var(--red-accent)] border border-[var(--red-accent)]/20">
-              <ShieldAlert size={40} />
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center border ${needsApiKey ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-[var(--red-accent)]/10 border-[var(--red-accent)]/20 text-[var(--red-accent)]'}`}>
+              {needsApiKey ? <Key size={40} /> : <ShieldAlert size={40} />}
             </div>
             <div className="space-y-3">
-                <h4 className="text-[var(--text-primary)] font-black text-lg uppercase italic tracking-tighter">Erro de Telemetria</h4>
+                <h4 className="text-[var(--text-primary)] font-black text-lg uppercase italic tracking-tighter">{needsApiKey ? 'Chave Necessária' : 'Erro de Telemetria'}</h4>
                 <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase leading-relaxed max-w-xs mx-auto opacity-70">{error}</p>
+                {needsApiKey && (
+                  <p className="text-[8px] text-zinc-500 uppercase tracking-widest mt-2">
+                    Acesse <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="underline text-[var(--cyan-accent)]">ai.google.dev/billing</a> para mais info.
+                  </p>
+                )}
             </div>
-            <button 
-                onClick={requestLocation}
-                className="w-full py-6 ui-card text-[var(--cyan-accent)] font-black text-[11px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
-            >
-                <RefreshCw size={18} /> REATIVAR RASTREIO
-            </button>
+            <div className="w-full space-y-3">
+              {needsApiKey ? (
+                <button 
+                    onClick={handleSelectKey}
+                    className="w-full py-6 bg-amber-500 text-black font-black text-[11px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl rounded-[24px]"
+                >
+                    <Key size={18} /> SELECIONAR MINHA CHAVE
+                </button>
+              ) : (
+                <button 
+                    onClick={requestLocation}
+                    className="w-full py-6 ui-card text-[var(--cyan-accent)] font-black text-[11px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
+                >
+                    <RefreshCw size={18} /> REATIVAR RASTREIO
+                </button>
+              )}
+            </div>
           </div>
         ) : mode === 'EVENTS' ? (
           <div className="space-y-6 animate-in fade-in duration-500">
