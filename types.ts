@@ -90,3 +90,9 @@ export interface DashboardConfig {
   customMissionText?: string;
   costPerKm?: number; 
 }
+
+export interface PredictiveMetrics {
+  estimatedFinishTime: string;
+  earningRatePerHour: number;
+  efficiencyGrade: 'A' | 'B' | 'C' | 'D';
+}

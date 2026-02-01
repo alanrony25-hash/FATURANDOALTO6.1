@@ -77,14 +77,26 @@ const App: React.FC = () => {
     const savedHistory = localStorage.getItem('driver_history');
     const savedMaint = localStorage.getItem('maintenance_logs');
     const savedKm = localStorage.getItem('current_odometer');
+    const savedBuckets = localStorage.getItem('budget_buckets');
     
     if (savedHistory) setHistory(JSON.parse(savedHistory));
     if (savedActiveJourney) setActiveJourney(JSON.parse(savedActiveJourney));
     if (savedMaint) setMaintenanceItems(JSON.parse(savedMaint));
     if (savedKm) setCurrentKm(Number(savedKm));
     
-    const bucketsSaved = localStorage.getItem('budget_buckets');
-    if (bucketsSaved) setBuckets(JSON.parse(bucketsSaved));
+    // Sincronização rigorosa: Se não houver 4 baldes, força o reset para o padrão
+    if (savedBuckets) {
+        const parsed = JSON.parse(savedBuckets) as BudgetBucket[];
+        if (parsed.length < 4) {
+            setBuckets(DEFAULT_BUCKETS);
+            localStorage.setItem('budget_buckets', JSON.stringify(DEFAULT_BUCKETS));
+        } else {
+            setBuckets(parsed);
+        }
+    } else {
+        setBuckets(DEFAULT_BUCKETS);
+        localStorage.setItem('budget_buckets', JSON.stringify(DEFAULT_BUCKETS));
+    }
 
     setTimeout(() => {
       if (savedUser) {
@@ -155,11 +167,11 @@ const App: React.FC = () => {
         {currentPage === AppState.DASHBOARD && <Dashboard 
           history={history} monthlyGoal={monthlyGoal} onUpdateGoal={setMonthlyGoal} buckets={buckets} 
           onUpdateBuckets={(b) => { setBuckets(b); localStorage.setItem('budget_buckets', JSON.stringify(b)); }}
-          onResetBuckets={() => { const nb = buckets.map(b => ({...b, currentAmount: 0})); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
+          onResetBuckets={() => { const nb = DEFAULT_BUCKETS.map(b => ({...b, currentAmount: 0})); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
           onResetSingleBucket={(id) => { const nb = buckets.map(b => b.id === id ? {...b, currentAmount: 0} : b); setBuckets(nb); localStorage.setItem('budget_buckets', JSON.stringify(nb)); }}
           onStartJourney={startJourney} activeJourney={activeJourney} onViewHistory={() => setCurrentPage(AppState.HISTORY)} currentKm={currentKm}
           onStartVoice={() => setShowVoice(true)} onOpenRadar={() => setShowRadar(true)}
-          dashboardConfig={dashboardConfig} onUpdateDashboardConfig={(c) => setDashboardConfig(c)}
+          dashboardConfig={dashboardConfig} onUpdateDashboardConfig={setDashboardConfig}
           onGoToSettings={() => setCurrentPage(AppState.SETTINGS)}
         />}
         {currentPage === AppState.ACTIVE_JOURNEY && activeJourney && (
