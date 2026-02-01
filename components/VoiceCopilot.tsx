@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Mic, Volume2, Loader2, Power, AlertCircle } from 'lucide-react';
+import { X, Mic, Volume2, Loader2, Power, AlertCircle, ShieldCheck } from 'lucide-react';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { Journey } from '../types';
 
@@ -14,7 +14,7 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState('Sistema de Voz Offline');
+  const [status, setStatus] = useState('SISTEMA STANDBY');
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const outContextRef = useRef<AudioContext | null>(null);
@@ -51,24 +51,26 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
   };
 
   const initVoiceSystem = async () => {
+    if (isConnecting) return;
     setIsConnecting(true);
     setError(null);
-    setStatus('Iniciando Protocolo de Voz...');
+    setStatus('AUTENTICANDO...');
 
     try {
-      // Mobile browsers: AudioContext must be created or resumed within a user gesture
-      const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      // Mobile absolute requirement: AudioContext MUST be created within a user click handler
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const inCtx = new AudioCtx({ sampleRate: 16000 });
+      const outCtx = new AudioCtx({ sampleRate: 24000 });
       
-      // Force resume for mobile Safari compatibility
-      if (inCtx.state === 'suspended') await inCtx.resume();
-      if (outCtx.state === 'suspended') await outCtx.resume();
+      // Explicitly resume for iOS/Android
+      await inCtx.resume();
+      await outCtx.resume();
 
       audioContextRef.current = inCtx;
       outContextRef.current = outCtx;
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
@@ -76,7 +78,7 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
           onopen: () => {
             setIsConnecting(false);
             setIsReady(true);
-            setStatus('Pode Falar, Piloto');
+            setStatus('ESCUTANDO...');
             
             const source = inCtx.createMediaStreamSource(stream);
             const scriptProcessor = inCtx.createScriptProcessor(4096, 1, 1);
@@ -92,9 +94,7 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
                 mimeType: 'audio/pcm;rate=16000',
               };
 
-              sessionPromise.then(s => {
-                s.sendRealtimeInput({ media: pcmBlob });
-              });
+              sessionPromise.then(s => s.sendRealtimeInput({ media: pcmBlob }));
             };
             
             source.connect(scriptProcessor);
@@ -103,7 +103,6 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
           onmessage: async (message) => {
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio && outCtx) {
-              // Ensure audio output context is still active (mobile energy saving might suspend it)
               if (outCtx.state === 'suspended') await outCtx.resume();
               
               setIsSpeaking(true);
@@ -131,25 +130,20 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
             }
           },
           onerror: (e) => {
-            console.error("Erro Live:", e);
-            setError('Falha na Conexão Live');
-            setStatus('Erro de Sincronização');
+            setError('ERRO DE LINK');
             setIsConnecting(false);
           },
-          onclose: () => {
-            console.log("Conexão Voz Encerrada");
-          }
+          onclose: () => onClose()
         },
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } },
-          systemInstruction: `Você é o Voice Pro 8.0 do FaturandoAlto. Atue como um co-piloto de elite. Seja extremamente breve e tático. Use tom encorajador e profissional.`
+          systemInstruction: `Copiloto FaturandoAlto Pro. Seja breve, técnico e motivador.`
         }
       });
       sessionRef.current = await sessionPromise;
     } catch (e) {
-      console.error("Erro ao iniciar sistema de voz:", e);
-      setError('Permissão ou API Negada');
+      setError('MICROFONE NEGADO');
       setIsConnecting(false);
     }
   };
@@ -163,71 +157,56 @@ const VoiceCopilot: React.FC<VoiceCopilotProps> = ({ onClose, history }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-[var(--bg-primary)] flex flex-col items-center justify-center p-10 animate-in fade-in duration-500">
-      <button onClick={onClose} className="absolute top-10 right-10 w-12 h-12 ui-card flex items-center justify-center text-[var(--text-secondary)] active:scale-90 transition-all">
+    <div className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
+      <button onClick={onClose} className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-zinc-500 active:scale-90 transition-all">
         <X size={24} />
       </button>
 
-      {!isReady && !isConnecting && !error ? (
-        <div className="text-center space-y-8 animate-in zoom-in duration-500">
-          <div className="w-32 h-32 rounded-full ui-card flex items-center justify-center text-[var(--cyan-accent)] mx-auto shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-            <Mic size={48} />
-          </div>
-          <div className="space-y-4">
-            <h2 className="text-[var(--text-primary)] text-2xl font-black uppercase italic tracking-tighter">Voice Pro 8.0</h2>
-            <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.3em] max-w-xs mx-auto">
-              SISTEMA DE VOZ BIOMÉTRICO AGUARDANDO ATIVAÇÃO DO PILOTO
-            </p>
-          </div>
-          <button 
-            onClick={initVoiceSystem}
-            className="w-full bg-[var(--cyan-accent)] text-black py-6 rounded-[32px] font-black uppercase tracking-[0.3em] text-[11px] shadow-xl active:scale-95 transition-all"
-          >
-            ATIVAR SISTEMA <Power size={16} className="inline ml-2" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-12 text-center">
-          <div className="relative">
-            {isSpeaking && (
-              <div className="absolute inset-0 bg-[var(--cyan-accent)] rounded-full animate-ping opacity-20"></div>
-            )}
-            <div className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-700 ${isSpeaking ? 'scale-110 shadow-[0_0_80px_rgba(6,182,212,0.4)]' : 'scale-100 shadow-[0_0_20px_rgba(0,0,0,0.5)]'}`}>
-              <div className={`w-40 h-40 rounded-full ui-card flex items-center justify-center relative z-10 ${isSpeaking ? 'border-[var(--cyan-accent)] shadow-[0_0_20px_var(--cyan-accent)]' : 'border-[var(--border-ui)]'}`}>
+      <div className="flex flex-col items-center gap-12 w-full max-w-xs">
+        <div className="relative">
+           {isSpeaking && <div className="absolute inset-0 bg-cyan-500 rounded-full animate-ping opacity-20"></div>}
+           <div className={`w-44 h-44 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${isSpeaking ? 'border-cyan-500 shadow-[0_0_50px_rgba(34,211,238,0.3)] scale-105' : 'border-zinc-800 scale-100'}`}>
+              <div className="w-36 h-36 rounded-full bg-zinc-950 flex items-center justify-center relative z-10">
                 {isConnecting ? (
-                  <Loader2 size={48} className="text-[var(--cyan-accent)] animate-spin" />
+                  <Loader2 size={40} className="text-cyan-500 animate-spin" />
                 ) : isSpeaking ? (
-                  <Volume2 size={48} className="text-[var(--cyan-accent)] animate-bounce" />
+                  <Volume2 size={40} className="text-cyan-500 animate-bounce" />
                 ) : error ? (
-                  <AlertCircle size={48} className="text-[var(--red-accent)]" />
+                  <AlertCircle size={40} className="text-red-500" />
                 ) : (
-                  <div className="relative">
-                     <Mic size={48} className="text-[var(--cyan-accent)]" />
-                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[var(--emerald-accent)] rounded-full border-2 border-black animate-pulse"></div>
-                  </div>
+                  <Mic size={40} className={isReady ? 'text-cyan-500 animate-pulse' : 'text-zinc-800'} />
                 )}
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <span className={`text-[10px] font-black uppercase tracking-[0.5em] block ${error ? 'text-[var(--red-accent)]' : 'text-[var(--cyan-accent)]'}`}>
-              {status}
-            </span>
-            <h2 className="text-[var(--text-primary)] text-3xl font-black italic tracking-tighter uppercase leading-none">
-              faturandoalto <br/><span className="text-[var(--cyan-accent)]">Voice Pro 8.0</span>
-            </h2>
-            {error && (
-              <button 
-                onClick={initVoiceSystem}
-                className="mt-4 text-[var(--red-accent)] text-[9px] font-black uppercase underline tracking-widest"
-              >
-                Tentar Reinicializar
-              </button>
-            )}
-          </div>
+           </div>
         </div>
-      )}
+
+        <div className="text-center space-y-4 w-full">
+           <span className={`text-[10px] font-black uppercase tracking-[0.4em] block ${error ? 'text-red-500' : 'text-cyan-500'}`}>
+              {status}
+           </span>
+           <h2 className="text-white text-2xl font-black italic tracking-tighter uppercase leading-none">
+              VOICE PRO <span className="text-cyan-500">8.0</span>
+           </h2>
+           
+           {!isReady && !isConnecting && (
+             <button 
+               onClick={initVoiceSystem}
+               className="w-full mt-6 bg-cyan-500 text-black py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
+             >
+               INICIAR PROTOCOLO <Power size={18} />
+             </button>
+           )}
+
+           {error && (
+             <button onClick={initVoiceSystem} className="text-red-500 text-[9px] font-black uppercase underline tracking-widest mt-4">Reiniciar Sistema</button>
+           )}
+        </div>
+        
+        <div className="flex items-center gap-2 opacity-30 mt-4">
+           <ShieldCheck size={12} className="text-cyan-500" />
+           <span className="text-[7px] font-black text-white uppercase tracking-widest">Criptografia Biométrica Ativa</span>
+        </div>
+      </div>
     </div>
   );
 };
