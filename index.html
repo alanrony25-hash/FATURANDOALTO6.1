@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#020617">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
@@ -15,17 +15,17 @@
     
     <style>
         :root {
-            /* DARK MODE (PREMIUM OLED) */
-            --bg-primary: #000000;
-            --bg-secondary: #0a0a0b;
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --border-ui: rgba(255, 255, 255, 0.1);
-            --cyan-accent: #22d3ee;
+            /* VIOLET STEALTH MODE (NOVO DARK) */
+            --bg-primary: #020617;
+            --bg-secondary: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-ui: rgba(139, 92, 246, 0.2);
+            --cyan-accent: #a855f7; /* Agora Violeta */
             --emerald-accent: #10b981;
             --red-accent: #f43f5e;
-            --card-bg: #09090b;
-            --nav-bg: #000000;
+            --card-bg: #030712;
+            --nav-bg: #020617;
         }
 
         .light-mode {
@@ -35,7 +35,7 @@
             --text-primary: #000000;
             --text-secondary: #000000;
             --border-ui: #000000;
-            --cyan-accent: #0891b2;
+            --cyan-accent: #6d28d9;
             --emerald-accent: #059669;
             --red-accent: #be123c;
             --card-bg: #ffffff;
@@ -50,7 +50,7 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            transition: all 0.2s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -60,6 +60,7 @@
             border: 1px solid var(--border-ui);
             border-radius: 20px;
             transition: transform 0.1s ease;
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
         }
 
         .light-mode .ui-card {
@@ -67,17 +68,15 @@
             box-shadow: 4px 4px 0px #000000;
         }
 
-        .light-mode button {
-            border: 2px solid #000000 !important;
-        }
-
-        ::-webkit-scrollbar { display: none; }
         .btn-active:active { transform: scale(0.95); }
         
         .nav-active {
             color: var(--cyan-accent) !important;
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
             opacity: 1 !important;
         }
+
+        ::-webkit-scrollbar { display: none; }
     </style>
 <script type="importmap">
 {
