@@ -9,37 +9,39 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
     <link rel="manifest" href="manifest.json">
-    <title>FaturandoAlto Pro 16.4</title>
+    <title>FaturandoAlto Pro 6.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* VIOLET STEALTH MODE (NOVO DARK) */
+            /* MODO NOITE (STEALTH) */
             --bg-primary: #020617;
             --bg-secondary: #0f172a;
+            --bg-tertiary: #1e293b;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --border-ui: rgba(139, 92, 246, 0.2);
-            --cyan-accent: #a855f7; /* Agora Violeta */
-            --emerald-accent: #10b981;
-            --red-accent: #f43f5e;
-            --card-bg: #030712;
-            --nav-bg: #020617;
+            --accent-main: #8b5cf6;
+            --accent-sec: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --card-bg: rgba(15, 23, 42, 0.6);
         }
 
         .light-mode {
-            /* LIGHT MODE (ULTRA CONTRAST) */
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --text-primary: #000000;
-            --text-secondary: #000000;
-            --border-ui: #000000;
-            --cyan-accent: #6d28d9;
-            --emerald-accent: #059669;
-            --red-accent: #be123c;
-            --card-bg: #ffffff;
-            --nav-bg: #ffffff;
+            /* MODO DIA (ULTRA) */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-ui: rgba(37, 99, 235, 0.15);
+            --accent-main: #2563eb;
+            --accent-sec: #0891b2;
+            --success: #059669;
+            --danger: #dc2626;
+            --card-bg: rgba(255, 255, 255, 0.8);
         }
 
         body {
@@ -50,7 +52,8 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -58,25 +61,27 @@
         .ui-card {
             background: var(--card-bg);
             border: 1px solid var(--border-ui);
+            backdrop-filter: blur(16px);
             border-radius: 20px;
-            transition: transform 0.1s ease;
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
         }
 
-        .light-mode .ui-card {
-            border: 2px solid #000000;
-            box-shadow: 4px 4px 0px #000000;
-        }
-
-        .btn-active:active { transform: scale(0.95); }
+        .btn-active:active { transform: scale(0.97); filter: brightness(1.1); }
         
         .nav-active {
-            color: var(--cyan-accent) !important;
-            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+            color: var(--accent-main) !important;
+            filter: drop-shadow(0 0 8px var(--accent-main));
             opacity: 1 !important;
         }
 
-        ::-webkit-scrollbar { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes pulse-custom {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        .pulse-active { animation: pulse-custom 2s infinite; }
     </style>
 <script type="importmap">
 {

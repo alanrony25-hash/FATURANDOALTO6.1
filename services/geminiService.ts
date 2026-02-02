@@ -4,50 +4,41 @@ import { Journey } from "../types";
 
 export const getJourneyInsight = async (journey: Journey): Promise<string> => {
   try {
-    // Initializing Gemini API client with named parameter apiKey as per @google/genai guidelines
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const gross = journey.rides.reduce((acc, r) => acc + r.value, 0);
     const expenses = journey.expenses.reduce((acc, e) => acc + e.value, 0);
-    const net = gross - expenses;
-    const durationHours = journey.endTime ? (journey.endTime - journey.startTime) / (1000 * 60 * 60) : 1;
     const kmTotal = Math.max(0, (journey.endKm || 0) - journey.startKm);
+    const durationHours = journey.endTime ? (journey.endTime - journey.startTime) / (1000 * 60 * 60) : 1;
+    
+    const net = gross - expenses;
+    const efficiency = net / Math.max(durationHours, 0.5);
 
-    // Detalhamento por plataforma para a IA
-    const platforms = journey.rides.reduce((acc: any, r) => {
-      acc[r.platform] = (acc[r.platform] || 0) + r.value;
-      return acc;
-    }, {});
-
-    // Fix: Accessed '99' property via bracket notation since numeric identifiers are invalid in dot notation.
-    // This resolves the "Cannot find name 'R$'" and other parsing errors caused by broken template string.
     const prompt = `
-      Atue como um estrategista de elite para motoristas multiapp (Uber, 99, InDrive e Corridas Particulares).
-      Analise esta jornada e forneça um insight tático curto (máx 2 linhas) e uma recomendação.
+      CONTEXTO: Copiloto de IA para Motoristas Profissionais (FaturandoAltoPro).
+      DADOS DA MISSÃO:
+      - Bruto: R$ ${gross.toFixed(2)}
+      - Gastos: R$ ${expenses.toFixed(2)}
+      - Lucro Líquido Real: R$ ${net.toFixed(2)}
+      - Distância: ${kmTotal}km
+      - Eficiência: R$ ${efficiency.toFixed(2)}/hora
       
-      Métricas da Missão:
-      - Faturamento Total Bruto: R$ ${gross.toFixed(2)}
-      - Detalhe: Uber: R$ ${platforms.Uber || 0}, 99: R$ ${platforms['99'] || 0}, InDrive: R$ ${platforms.InDrive || 0}, Particular: R$ ${platforms.Particular || 0}
-      - Despesas: R$ ${expenses.toFixed(2)}
-      - Lucro Líquido: R$ ${net.toFixed(0)}
-      - Km Rodados: ${kmTotal}km
-      - Eficiência: R$ ${(net / Math.max(durationHours, 0.1)).toFixed(2)}/h
-      
-      Responda 100% em Português do Brasil. Use emojis de cockpit e seja direto. Fale sobre a diversificação de apps se um se destacar muito.
+      TAREFA: Gere uma diretriz tática agressiva de 1 a 2 linhas em Português-BR.
+      FOCO: Se a eficiência estiver baixa, sugira trocar de app ou zona. Se alta, parabenize pela precisão.
+      TOM: Militar, tecnológico, motivador.
     `;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
-        systemInstruction: "Você é o CORE do FaturandoAltoPro, uma inteligência artificial de alta performance. Seu objetivo é maximizar o lucro por KM do piloto. Tom: técnico, motivador e estratégico."
+        systemInstruction: "Você é o CORE 6.0, a IA tática do FaturandoAltoPro. Seu objetivo é otimizar o lucro/km. Seja extremamente conciso."
       }
     });
 
-    // Extract text output using the .text property (not a method) as per SDK rules
-    return response.text || "Missão concluída. Analise os canais de ganho para otimizar amanhã.";
+    return response.text || "Dados consolidados. Mantenha o foco no odômetro.";
   } catch (error) {
-    console.error("Erro na Telemetria IA:", error);
-    return "Analizando dados de voo... Mantenha o foco na rota.";
+    console.error("AI Core Error:", error);
+    return "Sincronização pendente. Continue operando em modo Stealth.";
   }
 };
